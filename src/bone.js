@@ -7,14 +7,9 @@ var winston = require('winston');
 var child_process = require('child_process');
 var pinmap = require('./pinmap');
 var g = require('./constants');
-var ffi = require("ffi");
+var exec = require('shelljs').exec;
 
 var sysfsFiles = {};
-
-var libc = new ffi.Library(null, {
-  "system": ["int32", ["string"]]
-});
-var system = libc.system;
 
 function boneRequire(packageName, onfail) {
     var y = {};
@@ -438,11 +433,12 @@ module.exports = {
                 return(resp);
             }
             var command = 'dtc -O dtb -o ' + dtboFilename + ' -b 0 -@ ' + dtsFilename;
-            try {
-                system(command);
-            } catch(ex) {
-                resp.err = ex;
+          
+            var result = exec(command);
+            if (result.code !== 0) {
+              resp.err = result.output;
             }
+
             dtcHandler(resp.err);
         }
         
